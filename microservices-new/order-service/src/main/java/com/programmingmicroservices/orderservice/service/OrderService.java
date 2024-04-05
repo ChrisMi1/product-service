@@ -33,6 +33,7 @@ public class OrderService {
                 .stream()
                 .map(orderLineItemsDto -> toDto(orderLineItemsDto)).collect(Collectors.toList());
         order.setOrderLineItems(orderLineItems);
+        //call inventory service and place order if product is in stock
         orderRepository.save(order);
     }
 
