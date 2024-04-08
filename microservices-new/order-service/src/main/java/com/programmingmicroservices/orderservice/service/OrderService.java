@@ -23,15 +23,15 @@ import java.util.stream.Collectors;
 @Transactional
 public class OrderService {
     private final OrderRepository orderRepository;
-    private final WebClient webClient;
+    private final WebClient.Builder webClientBuilder;
 
     @Autowired
-    public OrderService(OrderRepository orderRepository,WebClient webClient) {
+    public OrderService(OrderRepository orderRepository,WebClient.Builder webClientBuilder) {
         this.orderRepository = orderRepository;
-        this.webClient=webClient;
+        this.webClientBuilder=webClientBuilder;
     }
 
-    public void placeOrder(OrderRequest orderRequest){
+    public void placeOrder(OrderRequest orderRequest) throws IllegalArgumentException{
         Order order = new Order();
         order.setOrderNumber(UUID.randomUUID().toString());
 
@@ -42,8 +42,8 @@ public class OrderService {
 
         List<String> skuCodes=  order.getOrderLineItems().stream().map(OrderLineItems::getSkuCode).collect(Collectors.toList());
         //call inventory service and place order if product is in stock
-        InventoryResponse[] inventoryResponses = webClient.get()
-                        .uri("http://localhost:8082/api/inventory",uriBuilder -> uriBuilder.queryParam("skuCodes",skuCodes).build())
+        InventoryResponse[] inventoryResponses = webClientBuilder.build().get()
+                        .uri("http://inventory-service/api/inventory",uriBuilder -> uriBuilder.queryParam("skuCode",skuCodes).build())
                         .retrieve()
                         .bodyToMono(InventoryResponse[].class)
                         .block();
